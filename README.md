@@ -27,3 +27,21 @@ Add `'logging_viewer.middleware.DBLoggingMiddleware'` to your `MIDDLEWARE` setti
         'logging_viewer.middleware.DBLoggingMiddleware',
         ...
     ]
+
+Add `'logging_viewer.middleware.DBLoggingMiddleware'` to your `MIDDLEWARE` setting.
+
+    MIDDLEWARE = [
+        'logging_viewer.middleware.DBLoggingMiddleware',
+        ...
+    ]
+
+Add djangorestlogger urls to you urlpatterns.
+
+    from djangorestlogger import urls as log_urls
+    urlpatterns = [
+        url(r'^logs/', include(log_urls)),
+        ...
+    ]
+
+Open in browser 127.0.0.1/logs/viewer/
+
