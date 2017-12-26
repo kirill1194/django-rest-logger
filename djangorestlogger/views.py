@@ -17,58 +17,58 @@ except:
     raise ImproperlyConfigured()
 
 
-def get_index_page(request):
-    files = [f for f in listdir(DIR) if isfile(join(DIR, f)) and not f.startswith('.')]
-    files.sort(key=lambda x: os.stat(os.path.join(DIR, x)).st_mtime)
-    files.reverse()
-    t = os.path.getmtime(os.path.join(DIR, files[0]))
-    last_request = datetime.datetime.fromtimestamp(t)
-    dirs = list()
-    return render(request, 'index.html', {'files': files, 'last_request': last_request, 'dirs': dirs})
-
-
-def get_log_file(request, path):
-    if path.endswith('/'):
-        path = path[:-1]
-    if not os.path.exists(path):
-        return HttpResponse("file don't exist", status=HTTP_404_NOT_FOUND)
-    if not os.path.isfile(path):
-        return HttpResponse('is not file', status=HTTP_404_NOT_FOUND)
-    try:
-        f = open(join(DIR, path), 'r', encoding='utf8')
-    except FileNotFoundError:
-        return HttpResponse("file don't exist", status=HTTP_404_NOT_FOUND)
-    content = f.read()
-    return HttpResponse(content, content_type="text/plain charset=utf-8")
-
-
-def get_path(request, path):
-    if path.endswith('/'):
-        path = path[:-1]
-    real_path = os.path.join(DIR, path)
-    if not os.path.exists(real_path):
-        return HttpResponse("file or dir don't exist", status=HTTP_404_NOT_FOUND)
-    if os.path.isdir(real_path):
-        files = [f for f in listdir(real_path) if isfile(join(real_path, f)) and not f.startswith('.')]
-        dirs = [d for d in listdir(real_path) if isdir(join(real_path, d)) and not d.startswith('.')]
-        files.sort(key=lambda x: os.stat(os.path.join(real_path, x)).st_mtime)
-        files.reverse()
-        dirs.sort()
-        if len(files) > 0:
-            t = os.path.getmtime(os.path.join(real_path, files[0]))
-            last_request = datetime.datetime.fromtimestamp(t)
-        else:
-            last_request = ' '
-
-        return render(request, 'index.html', {'files': files, 'last_request': last_request, 'dirs': dirs})
-    if os.path.isfile(real_path):
-        try:
-            f = open(join(DIR, path), 'r', encoding='utf8')
-        except FileNotFoundError:
-            return HttpResponse("file don't exist", status=HTTP_404_NOT_FOUND)
-        content = f.read()
-        return HttpResponse(content, content_type="text/plain charset=utf-8")
-    return HTTP_500_INTERNAL_SERVER_ERROR('ERROR((')
+# def get_index_page(request):
+#     files = [f for f in listdir(DIR) if isfile(join(DIR, f)) and not f.startswith('.')]
+#     files.sort(key=lambda x: os.stat(os.path.join(DIR, x)).st_mtime)
+#     files.reverse()
+#     t = os.path.getmtime(os.path.join(DIR, files[0]))
+#     last_request = datetime.datetime.fromtimestamp(t)
+#     dirs = list()
+#     return render(request, 'index.html', {'files': files, 'last_request': last_request, 'dirs': dirs})
+#
+#
+# def get_log_file(request, path):
+#     if path.endswith('/'):
+#         path = path[:-1]
+#     if not os.path.exists(path):
+#         return HttpResponse("file don't exist", status=HTTP_404_NOT_FOUND)
+#     if not os.path.isfile(path):
+#         return HttpResponse('is not file', status=HTTP_404_NOT_FOUND)
+#     try:
+#         f = open(join(DIR, path), 'r', encoding='utf8')
+#     except FileNotFoundError:
+#         return HttpResponse("file don't exist", status=HTTP_404_NOT_FOUND)
+#     content = f.read()
+#     return HttpResponse(content, content_type="text/plain charset=utf-8")
+#
+#
+# def get_path(request, path):
+#     if path.endswith('/'):
+#         path = path[:-1]
+#     real_path = os.path.join(DIR, path)
+#     if not os.path.exists(real_path):
+#         return HttpResponse("file or dir don't exist", status=HTTP_404_NOT_FOUND)
+#     if os.path.isdir(real_path):
+#         files = [f for f in listdir(real_path) if isfile(join(real_path, f)) and not f.startswith('.')]
+#         dirs = [d for d in listdir(real_path) if isdir(join(real_path, d)) and not d.startswith('.')]
+#         files.sort(key=lambda x: os.stat(os.path.join(real_path, x)).st_mtime)
+#         files.reverse()
+#         dirs.sort()
+#         if len(files) > 0:
+#             t = os.path.getmtime(os.path.join(real_path, files[0]))
+#             last_request = datetime.datetime.fromtimestamp(t)
+#         else:
+#             last_request = ' '
+#
+#         return render(request, 'index.html', {'files': files, 'last_request': last_request, 'dirs': dirs})
+#     if os.path.isfile(real_path):
+#         try:
+#             f = open(join(DIR, path), 'r', encoding='utf8')
+#         except FileNotFoundError:
+#             return HttpResponse("file don't exist", status=HTTP_404_NOT_FOUND)
+#         content = f.read()
+#         return HttpResponse(content, content_type="text/plain charset=utf-8")
+#     return HTTP_500_INTERNAL_SERVER_ERROR('ERROR((')
 
 
 def get_viewer(request):
