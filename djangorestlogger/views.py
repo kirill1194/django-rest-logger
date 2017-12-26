@@ -2,15 +2,14 @@ import datetime
 import os
 from os import listdir
 from os.path import isfile, join, isdir
-
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.http.response import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
 
-from logging_viewer.models import RequestResponseNote
-from logging_viewer.variables import show_user_name
+from djangorestlogger.models import RequestResponseNote
+from djangorestlogger.variables import show_user_name
 
 try:
     DIR = settings.LOG_DIR

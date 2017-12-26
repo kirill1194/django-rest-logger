@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from logging_viewer import views
+from djangorestlogger import views
 
 __author__ = 'Altuhov Kirill'
 
