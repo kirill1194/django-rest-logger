@@ -1,4 +1,4 @@
-# [Django REST logger][docs]
+# Django REST logger
 
 ---
 
