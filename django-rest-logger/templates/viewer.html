@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <title>Viewer</title>
+    <style>
+        .bs-example {
+            position: relative;
+            padding: 0px 15px 15px;
+            margin: 0 -15px 15px;
+            border-color: #e5e5e5 #eee #eee;
+            border-style: solid;
+            border-width: 1px 0;
+            -webkit-box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05);
+            box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05);
+        }
+
+        .item {
+            line-height: 1.4;
+            width: auto;
+            background-color: #fff;
+            margin: 10px;
+            padding: 8px 12px 8px 10px;
+            border-left: 4px solid #b1b1b1;
+            word-wrap: break-word;
+        }
+
+        pre {
+            outline: 1px solid #ccc;
+            padding: 5px;
+            margin: 5px;
+            white-space: pre-wrap; /* css-3 */
+            white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+            white-space: -pre-wrap; /* Opera 4-6 */
+            white-space: -o-pre-wrap; /* Opera 7 */
+            word-wrap: break-word; /* Internet Explorer 5.5+ */
+            width: 99%;
+        }
+
+        .string {
+            color: #00b0ff;
+        }
+
+        .number {
+            color: #0600e2;
+        }
+
+        .boolean {
+            color: #00d620;
+        }
+
+        .null {
+            color: #000000;
+        }
+
+        .key {
+            color: #920040;
+        }
+
+    </style>
+    <script>
+        function urlify(text) {
+            var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return text.replace(exp, "<a href='$1'>$1</a>");
+        }
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') {
+                json = JSON.stringify(json, undefined, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+        function fun(obj) {
+            $.get($(obj).attr('data-url'), function (data) {
+                try {
+                    var obj = JSON.parse(data)
+                    var str = JSON.stringify(obj, undefined, 4);
+                    var text = syntaxHighlight(str)
+                    text = urlify(text)
+                    $('#modal_content').html(text)
+                    $('#modal_window').modal()
+                } catch (e) {
+                    var text = syntaxHighlight(data)
+                    text = urlify(text)
+                    $('#modal_content').html(text)
+                    $('#modal_window').modal()
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+
+
+<div class="modal fade " id="modal_window">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Response Body</h4>
+            </div>
+
+            <pre class="modal-body" id="modal_content"></pre>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<form class="navbar-form navbar-left" role="search">
+    <div class="form-group">
+        <input type="text" class="form-control" placeholder="Method" value="{{ method|default_if_none:"" }}" name="filter_method">
+        <input type="text" class="form-control" placeholder="Url" value="{{ url|default_if_none:"" }}" name="filter_url">
+        <input type="text" class="form-control" placeholder="Response code" value="{{ code|default_if_none:"" }}" name="filter_code">
+        <input type="text" class="form-control" placeholder="Count" value="{{ count|default_if_none:"" }}" name="filter_count">
+        <input type='hidden' value='False' name='open_body'>
+        <input type="checkbox" {% if open_body %} checked {% endif %} name="open_body">
+        Open body
+    </div>
+    <button type="submit" class="btn btn-default">Filter</button>
+</form>
+
+<br/>
+<br/>
+<br/>
+<div style="margin: 10px; ">
+    {% for log in logs %}
+        {% with first_digit_status_code=log.response_status_code100 %}
+            {# Тип записи #}
+            {% if log.get_code_first_digit == 1 %}
+                <div class="panel panel-info">
+            {% elif log.get_code_first_digit == 2 %}
+                <div class="panel panel-success">
+            {% elif log.get_code_first_digit == 3 %}
+                <div class="panel panel-primary">
+            {% elif log.get_code_first_digit == 4 %}
+                <div class="panel panel-warning">
+            {% elif log.get_code_first_digit == 5 %}
+                <div class="panel panel-danger">
+            {% endif %}
+
+        <div class="panel-heading">
+            <span class="panel-title"><a data-toggle="collapse" data-target="#hiden_part_{{ log.id }}">{{ log.method }}:
+                {{ log.url }}</a> <span class="pull-right"><h4>code: {{ log.response_status_code }}</h4></span>
+            <div>{{ log.date | date:"d M Y H:i:s.u"}}</div>
+            </span>
+        </div>
+        <div id="hiden_part_{{ log.id }}" class="panel-collapse collapse {% if open_body %} in {% endif %}">
+            <div class="panel-body" style="padding: 0px 0px 0px 50px">
+                <h4>request:</h4>
+                <div class="item">
+                    {% if log.ip %}
+                        <div>Client IP: {{ log.ip }}</div>
+                    {% endif %}
+                    {% if show_name %}
+                        <div>User: {{ log.user_name }}</div>
+                    {% endif %}
+                    {% if log.process_time %}
+                        <div>Process time: {{ log.process_time }}</div>
+                    {% endif %}
+                    {% if log.request_content_type %}
+                        <div>Content-Type: {{ log.request_content_type }}</div>
+                    {% endif %}
+                    {% if log.request_headers %}
+                        <div>Headers:</div>
+                        <pre style="margin: 6px 6px 2px 10px;">{{ log.request_headers }}</pre>
+                    {% endif %}
+                    {% if log.request_query_params %}
+                        <div>Query params:
+                            <pre style="margin: 6px 6px 2px 10px;">{{ log.request_query_params }}</pre>
+                        </div>
+                    {% endif %}
+                    {% if log.request_body %}
+                        <div>
+                            Body:
+                            <pre style="margin: 6px 6px 2px 10px;">{{ log.request_body }}</pre>
+                        </div>
+                    {% endif %}
+
+                </div>
+                <h4>response:</h4>
+                <div class="item">
+                    {% if log.response_content_type %}
+                        <div>Content-Type : "{{ log.response_content_type }}"</div>
+                    {% endif %}
+                    {% if log.get_short_body %}
+                        <div>
+                            Body:
+                            <pre style="margin: 6px 6px 2px 10px;">{{ log.get_short_body|urlize }}</pre>
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-info pull-right" style="margin: 10px" data-url="{{ log.id }}/"
+                        onclick="fun(this)">Show
+                    body
+                </button>
+            </div>
+        </div>
+        </div>
+        {% endwith %}
+    {% endfor %}
+
+
+    {#    <div class="panel panel-primary">#}
+    {#        <div class="panel-heading">#}
+    {#            <h3 class="panel-title">301 Moved Permanently</h3>#}
+    {#        </div>#}
+    {#        <div class="panel-body">#}
+    {#            <div class="container">#}
+    {#                <h1>Learn to Create Websites</h1>#}
+    {#                <p>In today's world internet is the most popular way…</p>#}
+    {#                <p><a href="#" class="btn btn-primary btn-lg">Learn more</a></p>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#    </div>#}
+    {#    <div class="panel panel-success">#}
+    {#        <div class="panel-heading">#}
+    {#            <h3 class="panel-title">200 OK</h3>#}
+    {#        </div>#}
+    {#        <div class="panel-body">The server successfully processed the request.</div>#}
+    {#    </div>#}
+    {#    <div class="panel panel-info">#}
+    {#        <div class="panel-heading">#}
+    {#            <h3 class="panel-title">100 Continue</h3>#}
+    {#        </div>#}
+    {#        <div class="panel-body">The client should continue with its request.</div>#}
+    {#    </div>#}
+    {#    <div class="panel panel-warning">#}
+    {#        <div class="panel-heading">#}
+    {#            <h3 class="panel-title">400 Bad Request</h3>#}
+    {#        </div>#}
+    {#        <div class="panel-body">The request cannot be fulfilled due to bad syntax.</div>#}
+    {#    </div>#}
+    {#    <div class="panel panel-danger">#}
+    {#        <div class="panel-heading">#}
+    {#            <h3 class="panel-title">503 Service Unavailable</h3>#}
+    {#        </div>#}
+    {#        <div class="panel-body">The server is temporarily unable to handle the request.</div>#}
+    {#    </div>#}
+    {##}
+    {##}
+    {#    <div class="panel panel-default">#}
+    {#        <div class="panel-heading">Panel heading without title</div>#}
+    {#        <div class="panel-body">#}
+    {#            Panel content#}
+    {#        </div>#}
+    {#    </div>#}
+    {##}
+    {#    <div class="panel panel-default">#}
+    {#        <div class="panel-heading">#}
+    {#            <h3 class="panel-title">Panel title</h3>#}
+    {#        </div>#}
+    {#        <div class="panel-body">#}
+    {#            Panel content#}
+    {#        </div>#}
+    {#    </div>#}
+    {##}
+    {##}
+    {#    </div>#}
+    {##}
+    {##}
+    {#    <div class="panel-group" id="accordion">#}
+    {#        <div class="panel panel-default">#}
+    {#            <div class="panel-heading">#}
+    {#                <h4 class="panel-title">#}
+    {#                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">#}
+    {#                        Пункт Группы Свертывания #1#}
+    {#                    </a>#}
+    {#                </h4>#}
+    {#            </div>#}
+    {#            <div id="collapseOne" class="panel-collapse collapse in">#}
+    {#                <div class="panel-body">#}
+    {#                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3#}
+    {#                    wolf#}
+    {#                    moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum#}
+    {#                    eiusmod.#}
+    {#                    Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda#}
+    {#                    shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente#}
+    {#                    ea#}
+    {#                    proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw#}
+    {#                    denim#}
+    {#                    aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.#}
+    {#                </div>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#        <div class="panel panel-default">#}
+    {#            <div class="panel-heading">#}
+    {#                <h4 class="panel-title">#}
+    {#                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">#}
+    {#                        Пункт Группы Свертывания #2#}
+    {#                    </a>#}
+    {#                </h4>#}
+    {#            </div>#}
+    {#            <div id="collapseTwo" class="panel-collapse collapse">#}
+    {#                <div class="panel-body">#}
+    {#                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3#}
+    {#                    wolf#}
+    {#                    moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum#}
+    {#                    eiusmod.#}
+    {#                    Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda#}
+    {#                    shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente#}
+    {#                    ea#}
+    {#                    proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw#}
+    {#                    denim#}
+    {#                    aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.#}
+    {#                </div>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#        <div class="panel panel-default">#}
+    {#            <div class="panel-heading">#}
+    {#                <h4 class="panel-title">#}
+    {#                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">#}
+    {#                        Пункт Группы Свертывания #3#}
+    {#                    </a>#}
+    {#                </h4>#}
+    {#            </div>#}
+    {#            <div id="collapseThree" class="panel-collapse collapse">#}
+    {#                <div class="panel-body">#}
+    {#                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3#}
+    {#                    wolf#}
+    {#                    moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum#}
+    {#                    eiusmod.#}
+    {#                    Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda#}
+    {#                    shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente#}
+    {#                    ea#}
+    {#                    proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw#}
+    {#                    denim#}
+    {#                    aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.#}
+    {#                </div>#}
+    {#            </div>#}
+    {#        </div>#}
+    </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <table border="2" width="100%">
+        <tr>
+            <td><h2 align="center">files</h2></td>
+            <td><h2 align="center">dirs</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <div align="center">
+                	<br/>
+                    <h4>last request: {{ last_request }}</h4>
+                    {% for file in files %}
+                        <a href="{{ file }}/">{{ file }}</a>
+                        </br>
+                    {% endfor %}
+	            </div>
+            </td>
+            <td>
+                <div align="center">
+                	<br/>
+                    {% for dir in dirs %}
+                        <a href="{{ dir }}/">{{ dir }}</a>
+                        </br>
+                    {% endfor %}
+	            </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
