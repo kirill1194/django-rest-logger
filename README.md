@@ -1,4 +1,4 @@
-# [Django REST logger][docs]
+# Django REST logger
 
 ---
 
@@ -14,7 +14,7 @@ Install using `pip`
 
     pip install djangorestlogger
 
-Add `'rest_framework'` to your `INSTALLED_APPS` setting.
+Add `'logging_viewer'` to your `INSTALLED_APPS` setting.
 
     INSTALLED_APPS = (
         ...
